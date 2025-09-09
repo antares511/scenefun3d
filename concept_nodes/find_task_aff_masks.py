@@ -12,6 +12,8 @@ import zipfile
 import re
 
 from utils.data_parser import DataParser
+from pathlib import Path
+
 
 # -------------------------------
 # Skill mappings (kept for logging; not used in Task 2 lines)
@@ -351,7 +353,7 @@ def add_dummy_masks_for_missing_descriptions(
       - {visit_id}_{desc_id}.txt with one line:
             predicted_masks/{visit_id}_{desc_id}_000.txt <score>
     """
-    descriptions = data_parser.get_descriptions(visit_id)
+    descriptions = data_parser.get_descriptions_test(visit_id)
     all_desc_ids = []
     for d in descriptions:
         if "desc_id" in d:
@@ -434,13 +436,8 @@ def save_fun3du_format(
     print(f"[FUN3DU] Wrote {len(all_desc_ids)} .npz files to {results_dir}")
 
 
-# -------------------------------
-# Main (Hydra)
-# -------------------------------
-@hydra.main(version_base=None, config_path="configs", config_name="task_masks")
-def main(cfg: DictConfig):
-
-    # Resolve paths
+def find_task_aff_masks(cfg: DictConfig):
+     # Resolve paths
     map_path = Path(cfg.paths.map_dir)
     data_dir = Path(cfg.paths.scenefun3d_dir)
     results_dir = Path(cfg.paths.task2_pred_dir)
@@ -539,6 +536,30 @@ def main(cfg: DictConfig):
         print(f"[Task2] Flat zip ready: {zip_path}")
 
 
+# -------------------------------
+# Main (Hydra)
+# -------------------------------
+@hydra.main(version_base=None, config_path="configs", config_name="task_masks")
+def main(cfg: DictConfig):
+
+    all_maps_dir = Path(cfg.paths.all_maps_dir)
+    map_dirs = [d for d in all_maps_dir.iterdir() if d.is_dir()]
+    print(f"Found {len(map_dirs)} map directories in {all_maps_dir}")
+
+    for map_dir in tqdm(map_dirs, desc="Processing maps"):
+        # Extract scene id from directory name (assumes format: scenefun3d_<sceneid>_...)
+        name = map_dir.name
+        match = re.match(r"scenefun3d_(\d+)_", name)
+        if not match:
+            print(f"[WARN] Could not extract scene id from {name}, skipping.")
+            continue
+        scene_id = match.group(1)
+        # Set config for this map
+        cfg.paths.map_dir = str(map_dir)
+        cfg.scene = scene_id
+        print(f"\n[INFO] Processing scene {scene_id} at {map_dir}")
+        find_task_aff_masks(cfg)
+
+
 if __name__ == "__main__":
-    main()
     main()

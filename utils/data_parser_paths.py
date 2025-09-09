@@ -27,5 +27,6 @@ data_asset_to_path = {
     'transform': '<data_dir>/<visit_id>/<video_id>/<video_id>_transform.npy',
     'annotations': '<data_dir>/<visit_id>/<visit_id>_annotations.json',
     'descriptions': '<data_dir>/<visit_id>/<visit_id>_descriptions.json',
+    'descriptions_test': '<data_dir>/descriptions.json',
     'motions': '<data_dir>/<visit_id>/<visit_id>_motions.json',
 }

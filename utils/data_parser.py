@@ -724,6 +724,31 @@ class DataParser:
 
         return descriptions_data
 
+    def get_descriptions_test(self, visit_id):
+        """
+        Retrieve the natural language task descriptions for a specified scene.
+
+        Args:
+            visit_id (str or int): The identifier for the scene.
+
+        Returns:
+            (list): A list of descriptions, each represented as a dictionary.
+        """
+        descriptions_path = self.get_data_asset_path(
+            data_asset_identifier="descriptions_test", visit_id=visit_id
+        )
+
+        with open(descriptions_path, "r") as f:
+            descriptions_data = json.load(f)
+
+        # Filter descriptions to only those matching the visit_id
+        visit_id = str(visit_id)
+        filtered_descriptions = [
+            desc for desc in descriptions_data if str(desc.get("visit_id")) == visit_id
+        ]
+
+        return filtered_descriptions
+
     def get_motions(self, visit_id):
         """
         Retrieve the motion annotations for a specified scene.
